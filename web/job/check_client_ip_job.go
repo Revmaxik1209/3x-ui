@@ -394,35 +394,3 @@ func (j *CheckClientIpJob) getInboundByEmail(clientEmail string) (*model.Inbound
 
 	return inbound, nil
 }
-				}
-			}
-		}
-	}
-
-	sort.Strings(j.disAllowedIps)
-
-	if len(j.disAllowedIps) > 0 {
-		logger.Debug("disAllowedIps:", j.disAllowedIps)
-	}
-
-	db := database.GetDB()
-	err = db.Save(inboundClientIps).Error
-	if err != nil {
-		logger.Error("failed to save inboundClientIps:", err)
-		return false
-	}
-
-	return shouldCleanLog
-}
-
-func (j *CheckClientIpJob) getInboundByEmail(clientEmail string) (*model.Inbound, error) {
-	db := database.GetDB()
-	inbound := &model.Inbound{}
-
-	err := db.Model(&model.Inbound{}).Where("settings LIKE ?", "%"+clientEmail+"%").First(inbound).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return inbound, nil
-}
