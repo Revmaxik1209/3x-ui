@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/microcosm-cc/bluemonday"
 	"x-ui/database"
 	"x-ui/database/model"
 	"x-ui/logger"
@@ -177,16 +178,15 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 
 	// Secure client ID
 	for _, client := range clients {
-		switch inbound.Protocol {
-		case "trojan":
+		if inbound.Protocol == "trojan" {
 			if client.Password == "" {
 				return inbound, false, common.NewError("empty client ID")
 			}
-		case "shadowsocks":
+		} else if inbound.Protocol == "shadowsocks" {
 			if client.Email == "" {
 				return inbound, false, common.NewError("empty client ID")
 			}
-		default:
+		} else {
 			if client.ID == "" {
 				return inbound, false, common.NewError("empty client ID")
 			}
@@ -437,16 +437,15 @@ func (s *InboundService) AddInboundClient(data *model.Inbound) (bool, error) {
 
 	// Secure client ID
 	for _, client := range clients {
-		switch oldInbound.Protocol {
-		case "trojan":
+		if oldInbound.Protocol == "trojan" {
 			if client.Password == "" {
 				return false, common.NewError("empty client ID")
 			}
-		case "shadowsocks":
+		} else if oldInbound.Protocol == "shadowsocks" {
 			if client.Email == "" {
 				return false, common.NewError("empty client ID")
 			}
-		default:
+		} else {
 			if client.ID == "" {
 				return false, common.NewError("empty client ID")
 			}
@@ -633,14 +632,13 @@ func (s *InboundService) UpdateInboundClient(data *model.Inbound, clientId strin
 	clientIndex := -1
 	for index, oldClient := range oldClients {
 		oldClientId := ""
-		switch oldInbound.Protocol {
-		case "trojan":
+		if oldInbound.Protocol == "trojan" {
 			oldClientId = oldClient.Password
 			newClientId = clients[0].Password
-		case "shadowsocks":
+		} else if oldInbound.Protocol == "shadowsocks" {
 			oldClientId = oldClient.Email
 			newClientId = clients[0].Email
-		default:
+		} else {
 			oldClientId = oldClient.ID
 			newClientId = clients[0].ID
 		}
@@ -1247,12 +1245,11 @@ func (s *InboundService) SetClientTelegramUserID(trafficId int, tgId int64) (boo
 
 	for _, oldClient := range oldClients {
 		if oldClient.Email == clientEmail {
-			switch inbound.Protocol {
-			case "trojan":
+			if inbound.Protocol == "trojan" {
 				clientId = oldClient.Password
-			case "shadowsocks":
+			} else if inbound.Protocol == "shadowsocks" {
 				clientId = oldClient.Email
-			default:
+			} else {
 				clientId = oldClient.ID
 			}
 			break
@@ -1332,12 +1329,11 @@ func (s *InboundService) ToggleClientEnableByEmail(clientEmail string) (bool, bo
 
 	for _, oldClient := range oldClients {
 		if oldClient.Email == clientEmail {
-			switch inbound.Protocol {
-			case "trojan":
+			if inbound.Protocol == "trojan" {
 				clientId = oldClient.Password
-			case "shadowsocks":
+			} else if inbound.Protocol == "shadowsocks" {
 				clientId = oldClient.Email
-			default:
+			} else {
 				clientId = oldClient.ID
 			}
 			clientOldEnabled = oldClient.Enable
@@ -1396,12 +1392,11 @@ func (s *InboundService) ResetClientIpLimitByEmail(clientEmail string, count int
 
 	for _, oldClient := range oldClients {
 		if oldClient.Email == clientEmail {
-			switch inbound.Protocol {
-			case "trojan":
+			if inbound.Protocol == "trojan" {
 				clientId = oldClient.Password
-			case "shadowsocks":
+			} else if inbound.Protocol == "shadowsocks" {
 				clientId = oldClient.Email
-			default:
+			} else {
 				clientId = oldClient.ID
 			}
 			break
@@ -1454,12 +1449,11 @@ func (s *InboundService) ResetClientExpiryTimeByEmail(clientEmail string, expiry
 
 	for _, oldClient := range oldClients {
 		if oldClient.Email == clientEmail {
-			switch inbound.Protocol {
-			case "trojan":
+			if inbound.Protocol == "trojan" {
 				clientId = oldClient.Password
-			case "shadowsocks":
+			} else if inbound.Protocol == "shadowsocks" {
 				clientId = oldClient.Email
-			default:
+			} else {
 				clientId = oldClient.ID
 			}
 			break
@@ -1515,12 +1509,11 @@ func (s *InboundService) ResetClientTrafficLimitByEmail(clientEmail string, tota
 
 	for _, oldClient := range oldClients {
 		if oldClient.Email == clientEmail {
-			switch inbound.Protocol {
-			case "trojan":
+			if inbound.Protocol == "trojan" {
 				clientId = oldClient.Password
-			case "shadowsocks":
+			} else if inbound.Protocol == "shadowsocks" {
 				clientId = oldClient.Email
-			default:
+			} else {
 				clientId = oldClient.ID
 			}
 			break
@@ -1791,21 +1784,6 @@ func (s *InboundService) GetClientTrafficByEmail(email string) (traffic *xray.Cl
 	}
 
 	return nil, nil
-}
-
-func (s *InboundService) UpdateClientTrafficByEmail(email string, upload int64, download int64) error {
-	db := database.GetDB()
-
-	result := db.Model(xray.ClientTraffic{}).
-		Where("email = ?", email).
-		Updates(map[string]any{"up": upload, "down": download})
-
-	err := result.Error
-	if err != nil {
-		logger.Warningf("Error updating ClientTraffic with email %s: %v", email, err)
-		return err
-	}
-	return nil
 }
 
 func (s *InboundService) GetClientTrafficByID(id string) ([]xray.ClientTraffic, error) {

@@ -32,7 +32,7 @@ var defaultValueMap = map[string]string{
 	"webKeyFile":                  "",
 	"secret":                      random.Seq(32),
 	"webBasePath":                 "/",
-	"sessionMaxAge":               "360",
+	"sessionMaxAge":               "60",
 	"pageSize":                    "50",
 	"expireDiff":                  "0",
 	"trafficDiff":                 "0",
@@ -322,16 +322,8 @@ func (s *SettingService) GetTwoFactorEnable() (bool, error) {
 	return s.getBool("twoFactorEnable")
 }
 
-func (s *SettingService) SetTwoFactorEnable(value bool) error {
-	return s.setBool("twoFactorEnable", value)
-}
-
 func (s *SettingService) GetTwoFactorToken() (string, error) {
 	return s.getString("twoFactorToken")
-}
-
-func (s *SettingService) SetTwoFactorToken(value string) error {
-	return s.setString("twoFactorToken", value)
 }
 
 func (s *SettingService) GetPort() (int, error) {
